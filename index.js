@@ -9,29 +9,36 @@ document.addEventListener('DOMContentLoaded', function () {
 
   tambahBukuButton.addEventListener('click', addBook);
 
+// Fungsi untuk membuat ID unik
+function generateId() {
+  return '_' + Math.random().toString(36).substr(2, 9);
+} 
+
   function addBook() {
     const title = titleInput.value;
     const author = authorInput.value;
-    const year = yearInput.value;
+    const year = parseInt(yearInput.value, 10);
     const rack = rackSelect.value;
-
+  
     if (title === '' || author === '' || year === '') {
       alert('Mohon isi semua kolom!');
       return;
     }
-
+  
     const book = {
+      id: generateId(),
       title: title,
       author: author,
       year: year,
+      isComplete: rack === 'finished',
     };
-
+  
     if (rack === 'unfinished') {
       addToRack(book, unfinishedList, 'finished');
     } else {
       addToRack(book, finishedList, 'unfinished');
     }
-
+  
     saveToLocalStorage();
     clearInputFields();
   }
@@ -67,7 +74,7 @@ document.addEventListener('DOMContentLoaded', function () {
     selesaiButton.addEventListener('click', function () {
       moveToRack(this, oppositeRack);
     });
-  
+
     // Pasang event listener pada tombol "Hapus"
     const deleteButton = li.querySelector('.delete-button');
     deleteButton.addEventListener('click', function () {
