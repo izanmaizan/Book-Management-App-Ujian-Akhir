@@ -1,20 +1,24 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Book Management App</title>
+  <title>Aplikasi Pengelolaan Buku</title>
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
   <div id="app">
-    <h2>Book Management App</h2>
-    <input type="text" id="titleInput" placeholder="Enter book title">
+    <h2>Aplikasi Pengelolaan Buku</h2>
+    <input type="text" id="titleInput" placeholder="Masukkan judul buku">
+    <input type="text" id="authorInput" placeholder="Masukkan penulis buku">
+    <input type="text" id="yearInput" placeholder="Masukkan tahun terbit">
     <select id="rackSelect">
       <option value="unfinished">Belum selesai dibaca</option>
       <option value="finished">Selesai dibaca</option>
     </select>
-    <button onclick="addBook()">Add Book</button>
+    <button id="tambahBukuButton">Tambah Buku</button>
     <div id="racks">
       <div id="unfinishedRack">
         <h3>Belum selesai dibaca</h3>
@@ -25,9 +29,9 @@
         <ul id="finishedList"></ul>
       </div>
     </div>
-    <button onclick="clearData()">Clear Data</button>
   </div>
 
   <script src="index.js"></script>
 </body>
+
 </html>
