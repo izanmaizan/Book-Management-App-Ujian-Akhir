@@ -1,63 +1,166 @@
-// index.js
-function addBook() {
+document.addEventListener('DOMContentLoaded', function () {
   const titleInput = document.getElementById('titleInput');
+  const authorInput = document.getElementById('authorInput');
+  const yearInput = document.getElementById('yearInput');
   const rackSelect = document.getElementById('rackSelect');
   const unfinishedList = document.getElementById('unfinishedList');
   const finishedList = document.getElementById('finishedList');
+  const tambahBukuButton = document.getElementById('tambahBukuButton');
 
-  const title = titleInput.value.trim();
-  const rack = rackSelect.value;
+  tambahBukuButton.addEventListener('click', addBook);
 
-  if (title) {
-    const liElement = document.createElement('li');
-    liElement.textContent = title;
+  function addBook() {
+    const title = titleInput.value;
+    const author = authorInput.value;
+    const year = yearInput.value;
+    const rack = rackSelect.value;
 
-    if (rack === 'unfinished') {
-      unfinishedList.appendChild(liElement);
-    } else if (rack === 'finished') {
-      finishedList.appendChild(liElement);
+    if (title === '' || author === '' || year === '') {
+      alert('Mohon isi semua kolom!');
+      return;
     }
 
-    saveDataToStorage();
-    titleInput.value = '';
+    const book = {
+      title: title,
+      author: author,
+      year: year,
+    };
+
+    if (rack === 'unfinished') {
+      addToRack(book, unfinishedList, 'finished');
+    } else {
+      addToRack(book, finishedList, 'unfinished');
+    }
+
+    saveToLocalStorage();
+    clearInputFields();
   }
-}
 
-function saveDataToStorage() {
-  const unfinishedData = Array.from(document.getElementById('unfinishedList').children).map(book => book.textContent);
-  const finishedData = Array.from(document.getElementById('finishedList').children).map(book => book.textContent);
+  function addToRack(book, rackList, oppositeRack) {
+    // Check if the book is already in the list to avoid duplication
+    const existingBook = Array.from(rackList.children).find((item) => {
+      const titleElement = item.querySelector('.title');
+      return titleElement && titleElement.innerText === book.title;
+    });
+  
+    if (existingBook) {
+      alert('Buku sudah ada dalam daftar!');
+      return;
+    }
+  
+    const li = document.createElement('li');
+    li.innerHTML = `
+      <div class="book-details">
+        <span class="title">${book.title}</span>
+        <span class="info">${book.author}</span>
+        <span class="info">${book.year}</span>
+      </div>
+      <div class="button-container">
+        <button class="selesai-button">Pindah</button>
+        <button class="delete-button">Hapus</button>
+      </div>
+    `;
+    rackList.appendChild(li);
+  
+    // Pasang event listener pada tombol "Selesai"
+    const selesaiButton = li.querySelector('.selesai-button');
+    selesaiButton.addEventListener('click', function () {
+      moveToRack(this, oppositeRack);
+    });
+  
+    // Pasang event listener pada tombol "Hapus"
+    const deleteButton = li.querySelector('.delete-button');
+    deleteButton.addEventListener('click', function () {
+      deleteBook(this);
+    });
+  }
 
-  localStorage.setItem('unfinishedData', JSON.stringify(unfinishedData));
-  localStorage.setItem('finishedData', JSON.stringify(finishedData));
-}
+  window.moveToRack = function (button, targetRack) {
+    const bookItem = button.parentNode.parentNode;
+    const targetList = targetRack === 'finished' ? finishedList : unfinishedList;
 
-function loadAndDisplayData() {
-  const unfinishedList = document.getElementById('unfinishedList');
-  const finishedList = document.getElementById('finishedList');
+    targetList.appendChild(bookItem);
+    saveToLocalStorage();
+  }
 
-  const unfinishedData = JSON.parse(localStorage.getItem('unfinishedData')) || [];
-  const finishedData = JSON.parse(localStorage.getItem('finishedData')) || [];
+  window.deleteBook = function (button) {
+    const bookItem = button.parentNode.parentNode;
+    bookItem.remove();
+    saveToLocalStorage();
+  }
 
-  unfinishedList.innerHTML = '';
-  finishedList.innerHTML = '';
+  function saveToLocalStorage() {
+    try {
+      const unfinishedBooks = getBookDataFromList(unfinishedList);
+      const finishedBooks = getBookDataFromList(finishedList);
+  
+      console.log('Saving to local storage...');
+      console.log('Unfinished Books:', unfinishedBooks);
+      console.log('Finished Books:', finishedBooks);
+  
+      localStorage.setItem('unfinishedBooks', JSON.stringify(unfinishedBooks));
+      localStorage.setItem('finishedBooks', JSON.stringify(finishedBooks));
+    } catch (error) {
+      console.error('Error saving data to local storage:', error);
+    }
+  }
 
-  unfinishedData.forEach(book => {
-    const liElement = document.createElement('li');
-    liElement.textContent = book;
-    unfinishedList.appendChild(liElement);
-  });
+  function getBookDataFromList(bookList) {
+    const books = [];
+    const bookItems = bookList.children;
 
-  finishedData.forEach(book => {
-    const liElement = document.createElement('li');
-    liElement.textContent = book;
-    finishedList.appendChild(liElement);
-  });
-}
+    for (const bookItem of bookItems) {
+      const title = bookItem.querySelector('.title').innerText;
+      const author = bookItem.querySelector('span:nth-child(2)').innerText;
+      const year = bookItem.querySelector('span:nth-child(3)').innerText;
 
-function clearData() {
-  localStorage.removeItem('unfinishedData');
-  localStorage.removeItem('finishedData');
-  loadAndDisplayData();
-}
+      books.push({ title, author, year });
+    }
 
-window.onload = loadAndDisplayData;
+    return books;
+  }
+
+  function loadFromLocalStorage() {
+    const unfinishedBooks = JSON.parse(localStorage.getItem('unfinishedBooks')) || [];
+    const finishedBooks = JSON.parse(localStorage.getItem('finishedBooks')) || [];
+  
+    unfinishedList.innerHTML = '';
+    finishedList.innerHTML = '';
+  
+    unfinishedBooks.forEach((book) => addToRack(book, unfinishedList, 'finished'));
+    finishedBooks.forEach((book) => addToRack(book, finishedList, 'unfinished'));
+  
+    // Pasang event listener menggunakan event delegation
+    unfinishedList.addEventListener('click', function (event) {
+      const selesaiButton = event.target.closest('.selesai-button');
+      if (selesaiButton) {
+        moveToRack(selesaiButton, 'finished');
+      }
+  
+      const deleteButton = event.target.closest('.delete-button');
+      if (deleteButton) {
+        deleteBook(deleteButton);
+      }
+    });
+  
+    finishedList.addEventListener('click', function (event) {
+      const selesaiButton = event.target.closest('.selesai-button');
+      if (selesaiButton) {
+        moveToRack(selesaiButton, 'unfinished');
+      }
+  
+      const deleteButton = event.target.closest('.delete-button');
+      if (deleteButton) {
+        deleteBook(deleteButton);
+      }
+    });
+  }
+
+  function clearInputFields() {
+    titleInput.value = '';
+    authorInput.value = '';
+    yearInput.value = '';
+  }
+
+  loadFromLocalStorage();
+});
