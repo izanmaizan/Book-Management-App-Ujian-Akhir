@@ -35,8 +35,10 @@ function generateId() {
   
     if (rack === 'unfinished') {
       addToRack(book, unfinishedList, 'finished');
+      console.log('Type of year in book:', typeof book.year);
     } else {
       addToRack(book, finishedList, 'unfinished');
+      console.log('Type of year in book:', typeof book.year);
     }
   
     saveToLocalStorage();
@@ -101,6 +103,10 @@ function generateId() {
       const unfinishedBooks = getBookDataFromList(unfinishedList);
       const finishedBooks = getBookDataFromList(finishedList);
   
+      // Konversi nilai year ke tipe data number sebelum menyimpan ke localStorage
+      const unfinishedBooksJSON = JSON.stringify(unfinishedBooks.map(book => ({ ...book, year: parseInt(book.year, 10) })));
+      const finishedBooksJSON = JSON.stringify(finishedBooks.map(book => ({ ...book, year: parseInt(book.year, 10) })));
+
       console.log('Saving to local storage...');
       console.log('Unfinished Books:', unfinishedBooks);
       console.log('Finished Books:', finishedBooks);
@@ -119,7 +125,7 @@ function generateId() {
     for (const bookItem of bookItems) {
       const title = bookItem.querySelector('.title').innerText;
       const author = bookItem.querySelector('span:nth-child(2)').innerText;
-      const year = bookItem.querySelector('span:nth-child(3)').innerText;
+      const year = parseInt(bookItem.querySelector('span:nth-child(3)').innerText, 10);
 
       books.push({ title, author, year });
     }
